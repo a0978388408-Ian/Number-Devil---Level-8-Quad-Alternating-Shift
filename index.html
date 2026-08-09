@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👑 Number Devil - 終極遞增跳躍版</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'PingFang TC', 'Microsoft JhengHei', -apple-system, sans-serif;
+      background: linear-gradient(-45deg, #05000a, #1a001a, #2d001e, #0a0015);
+      background-size: 400% 400%;
+      animation: gradientBG 8s ease infinite;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #fff;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(217, 70, 239, 0.04),
+        rgba(217, 70, 239, 0.04) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .game-card {
+      position: relative;
+      z-index: 2;
+      background: rgba(12, 3, 18, 0.75);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 2px solid rgba(217, 70, 239, 0.8);
+      border-radius: 28px;
+      padding: 32px 24px;
+      max-width: 540px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(217, 70, 239, 0.4), inset 0 0 20px rgba(244, 63, 94, 0.25);
+      transition: transform 0.1s ease;
+    }
+
+    .shake {
+      animation: shakeAnim 0.5s ease-in-out;
+    }
+
+    @keyframes shakeAnim {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-8px, 5px); }
+      40% { transform: translate(8px, -5px); }
+      60% { transform: translate(-5px, 3px); }
+      80% { transform: translate(5px, -3px); }
+    }
+
+    .level-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #d946ef, #7000ff, #ff0055);
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      margin-bottom: 12px;
+      letter-spacing: 1.5px;
+      box-shadow: 0 0 25px rgba(217, 70, 239, 0.9);
+      animation: bossPulse 1.2s infinite alternate;
+    }
+
+    @keyframes bossPulse {
+      0% { transform: scale(1); box-shadow: 0 0 15px rgba(217, 70, 239, 0.7); }
+      100% { transform: scale(1.08); box-shadow: 0 0 35px rgba(236, 72, 153, 1); }
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #f472b6, #d946ef, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow: 0 0 25px rgba(217, 70, 239, 0.6);
+    }
+
+    .desc-box {
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px dashed rgba(217, 70, 239, 0.6);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      color: #f1f5f9;
+      line-height: 1.6;
+      text-align: left;
+      box-shadow: inset 0 0 12px rgba(217, 70, 239, 0.2);
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 18px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #f472b6;
+    }
+
+    .input-group { 
+      display: flex; 
+      justify-content: center; 
+      gap: 10px; 
+      margin-bottom: 22px; 
+    }
+
+    .input-group input {
+      width: 48px; 
+      height: 58px; 
+      font-size: 1.7rem; 
+      text-align: center;
+      border-radius: 14px; 
+      border: 2px solid rgba(217, 70, 239, 0.8); 
+      background: rgba(20, 5, 25, 0.9);
+      color: #f472b6; 
+      font-weight: 900; 
+      outline: none; 
+      text-shadow: 0 0 10px rgba(217, 70, 239, 0.7);
+      box-shadow: 0 0 12px rgba(217, 70, 239, 0.25);
+    }
+
+    .input-group input:focus {
+      border-color: #f472b6;
+      box-shadow: 0 0 20px rgba(244, 114, 182, 0.9);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #d946ef, #7000ff);
+      color: white; 
+      border: none; 
+      padding: 16px 30px;
+      font-size: 1.1rem; 
+      font-weight: bold; 
+      border-radius: 30px; 
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 8px 30px rgba(217, 70, 239, 0.6);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      letter-spacing: 1.5px;
+    }
+
+    .btn:hover {
+      box-shadow: 0 10px 35px rgba(217, 70, 239, 0.8);
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .history {
+      margin-top: 20px; 
+      max-height: 260px; 
+      overflow-y: auto; 
+      text-align: left;
+      background: rgba(5, 0, 10, 0.8); 
+      padding: 14px; 
+      border-radius: 18px;
+      border: 1px solid rgba(217, 70, 239, 0.25);
+    }
+
+    .history-item {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08); 
+      font-size: 0.88rem;
+    }
+
+    .signal-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .badge-signal {
+      background: rgba(217, 70, 239, 0.15);
+      color: #ffeaa7; 
+      padding: 4px 8px; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      font-size: 0.78rem;
+      border: 1px solid rgba(217, 70, 239, 0.4);
+      text-align: center;
+    }
+
+    .overlay {
+      display: none; 
+      position: fixed; 
+      top: 0; left: 0; 
+      width: 100%; height: 100%;
+      background: rgba(5, 0, 10, 0.96); 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 100;
+      backdrop-filter: blur(25px);
+    }
+
+    .reward-card {
+      background: #12031a; 
+      color: #ffffff; 
+      padding: 36px 28px;
+      border-radius: 30px; 
+      max-width: 440px; 
+      width: 90%; 
+      text-align: center;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 0 70px rgba(217, 70, 239, 0.9);
+      border: 2px solid #d946ef;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .reward-card h2 { color: #d946ef; margin-bottom: 12px; font-size: 2rem; text-shadow: 0 0 15px rgba(217,70,239,0.6); }
+  </style>
+</head>
+<body>
+
+  <div class="game-card" id="gameCard">
+    <div class="level-tag">👑 FINAL BOSS - 終極遞增跳躍版</div>
+
+    <h1>四重迷霧：全體遞增跳躍</h1>
+    
+    <div class="desc-box">
+      🔥 <strong>遊戲規則：</strong><br>
+      請解譯 <strong>5 位數字（0 到 9，數字可重複）</strong>。<br>
+      🌫️ <strong>四重迷霧：</strong>每次輸入會給出 <strong>4 組訊號（1個真的、3個假的）</strong>。<br>
+      ⚠️ <strong>真相線索：</strong>假的訊號絕不會出現 <strong>0A0B</strong>！如果看到 0A0B，那它絕對是真的。<br>
+      🌀 <strong>全體遞增跳躍機制：</strong>每累積滿 <strong>8 次嘗試</strong>，密碼的 5 個數字會全體一起跳躍，且幅度逐次增加：<br>
+      &nbsp;&nbsp;• 第 1 次跳躍（第 8 次嘗試後）：全體數字 **+1**<br>
+      &nbsp;&nbsp;• 第 2 次跳躍（第 16 次嘗試後）：全體數字 **+2**<br>
+      &nbsp;&nbsp;• 第 3 次跳躍（第 24 次嘗試後）：全體數字 **+3**（以此類推，數字超過 9 會自動從 0 循環計算）
+    </div>
+
+    <div class="status-bar">
+      <span>🎯 嘗試次數：<span id="attemptCountDisplay" style="color:#f472b6;">0</span> 次</span>
+      <span>⏱️ 耗費時間：<span id="timerDisplay" style="color:#f472b6;">00:00</span></span>
+    </div>
+
+    <div class="input-group" id="inputGroup"></div>
+
+    <button class="btn" onclick="checkCode()">挑戰終極魔王 ⚔️</button>
+
+    <div class="history" id="history">
+      <div style="text-align:center; color:#a1a1aa; font-size:0.88rem;">請輸入 5 位數開始破解！</div>
+    </div>
+  </div>
+
+  <!-- 通關彈窗 -->
+  <div class="overlay" id="rewardOverlay">
+    <div class="reward-card">
+      <h2>🏆 恭喜破譯成功！</h2>
+      <p style="font-weight: bold; color: #f472b6; margin-top: 5px; font-size: 1.15rem;">【最終密碼解答：<span id="secretCodeDisplay"></span>】</p>
+      <p id="modalDesc" style="margin: 18px 0; color: #e2e8f0; line-height: 1.6; font-size: 0.95rem;"></p>
+      <button class="btn" onclick="location.reload()">重新挑戰 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    const CODE_LENGTH = 5;
+    const SHIFT_INTERVAL = 8; // 每 8 次嘗試跳躍一次
+
+    let attemptsCount = 0;
+    let shiftCount = 0; // 記錄跳躍次數（第 1 次跳 +1，第 2 次跳 +2...）
+    let startTime = Date.now();
+    let timerInterval = null;
+
+    let currentTarget = [];
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      currentTarget.push(Math.floor(Math.random() * 10));
+    }
+
+    let signalCache = {};
+    let historyData = [];
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const mins = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+        const secs = String(elapsedSeconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function renderInputs() {
+      const group = document.getElementById('inputGroup');
+      group.innerHTML = '';
+      for (let i = 0; i < CODE_LENGTH; i++) {
+        const input = document.createElement('input');
+        input.type = 'tel';
+        input.maxLength = 1;
+        input.className = 'code-input';
+
+        input.addEventListener('keyup', (e) => {
+          const inputs = document.querySelectorAll('.code-input');
+          if (e.key !== 'Backspace' && input.value.length === 1 && i < inputs.length - 1) {
+            inputs[i + 1].focus();
+          }
+        });
+
+        input.addEventListener('keydown', (e) => {
+          const inputs = document.querySelectorAll('.code-input');
+          if (e.key === 'Backspace') {
+            if (input.value === '' && i > 0) {
+              inputs[i - 1].focus();
+            } else {
+              input.value = '';
+            }
+          } else if (e.key === 'Enter') {
+            checkCode();
+          }
+        });
+
+        group.appendChild(input);
+      }
+      setTimeout(() => { group.querySelector('input')?.focus(); }, 100);
+    }
+
+    function calculateAB(guessArr, targetArr) {
+      let a = 0, b = 0;
+      const targetUsed = new Array(CODE_LENGTH).fill(false);
+      const guessUsed = new Array(CODE_LENGTH).fill(false);
+
+      for (let i = 0; i < CODE_LENGTH; i++) {
+        if (guessArr[i] === targetArr[i]) {
+          a++;
+          targetUsed[i] = true;
+          guessUsed[i] = true;
+        }
+      }
+      for (let i = 0; i < CODE_LENGTH; i++) {
+        if (!guessUsed[i]) {
+          for (let j = 0; j < CODE_LENGTH; j++) {
+            if (!targetUsed[j] && guessArr[i] === targetArr[j]) {
+              b++;
+              targetUsed[j] = true;
+              break;
+            }
+          }
+        }
+      }
+      return { a, b };
+    }
+
+    function generateSmartLie(guessArr, trueResult, avoidResults = []) {
+      let fakeTarget = [];
+      let fakeResult = { a: 0, b: 0 };
+      let valid = false;
+
+      for (let retry = 0; retry < 100; retry++) {
+        fakeTarget = [];
+        for (let i = 0; i < CODE_LENGTH; i++) fakeTarget.push(Math.floor(Math.random() * 10));
+        
+        fakeResult = calculateAB(guessArr, fakeTarget);
+        const fakeSum = fakeResult.a + fakeResult.b;
+
+        const isSameAsTrue = (fakeResult.a === trueResult.a && fakeResult.b === trueResult.b);
+        const isDuplicate = avoidResults.some(r => r.a === fakeResult.a && r.b === fakeResult.b);
+
+        if (fakeSum > 0 && !isSameAsTrue && !isDuplicate) {
+          valid = true;
+          break;
+        }
+      }
+
+      if (!valid) {
+        fakeResult.a = Math.min(CODE_LENGTH, Math.max(1, trueResult.a + avoidResults.length + 1));
+        fakeResult.b = Math.max(0, CODE_LENGTH - fakeResult.a);
+      }
+
+      return fakeResult;
+    }
+
+    // 遞增跳躍邏輯：跳躍次數每多一次，全體加的數值就多 1（第 1 次跳加 1，第 2 次跳加 2...）
+    function shiftTarget() {
+      shiftCount++;
+      const addVal = shiftCount;
+
+      currentTarget = currentTarget.map(num => (num + addVal) % 10);
+
+      const card = document.getElementById('gameCard');
+      card.classList.add('shake');
+      setTimeout(() => card.classList.remove('shake'), 500);
+      return addVal;
+    }
+
+    function checkCode() {
+      const inputs = document.querySelectorAll('.code-input');
+      let guessStr = '';
+      inputs.forEach(input => guessStr += input.value);
+
+      const pattern = new RegExp(`^\\d{${CODE_LENGTH}}$`);
+      if (guessStr.length !== CODE_LENGTH || !pattern.test(guessStr)) {
+        alert(`請輸入完整的 ${CODE_LENGTH} 位數字！`);
+        return;
+      }
+
+      const guessArr = guessStr.split('').map(Number);
+      attemptsCount++;
+      document.getElementById('attemptCountDisplay').innerText = attemptsCount;
+
+      const currentCycle = Math.floor((attemptsCount - 1) / SHIFT_INTERVAL) + 1;
+      const realResult = calculateAB(guessArr, currentTarget);
+
+      const cacheKey = `c${currentCycle}_${guessStr}`;
+
+      let signals;
+      if (signalCache[cacheKey]) {
+        signals = signalCache[cacheKey];
+      } else {
+        const lie1 = generateSmartLie(guessArr, realResult, []);
+        const lie2 = generateSmartLie(guessArr, realResult, [lie1]);
+        const lie3 = generateSmartLie(guessArr, realResult, [lie1, lie2]);
+
+        signals = [
+          { ...realResult, type: 'real' },
+          { ...lie1, type: 'lie' },
+          { ...lie2, type: 'lie' },
+          { ...lie3, type: 'lie' }
+        ];
+
+        signals.sort(() => Math.random() - 0.5);
+        signalCache[cacheKey] = signals;
+      }
+
+      const willShift = (attemptsCount % SHIFT_INTERVAL === 0);
+      let shiftedAddVal = 0;
+
+      historyData.unshift({ 
+        guess: guessStr, 
+        signals: signals,
+        cycle: currentCycle,
+        shiftedNotice: willShift,
+        shiftVal: shiftCount + 1 // 下一次跳躍將增加的數值
+      });
+
+      renderHistory();
+
+      if (realResult.a === CODE_LENGTH) {
+        clearInterval(timerInterval);
+        const totalSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const finalMins = Math.floor(totalSeconds / 60);
+        const finalSecs = totalSeconds % 60;
+        
+        let timeString = (finalMins > 0) ? `${finalMins} 分 ${finalSecs} 秒` : `${finalSecs} 秒`;
+
+        document.getElementById('secretCodeDisplay').innerText = guessStr;
+        document.getElementById('modalDesc').innerText = `太令人不可思議了！你憑著極強的邏輯推理能力，看穿了四重迷霧與全體遞增跳躍，成功擊敗終極魔王！\n\n總共花費 ${attemptsCount} 次嘗試，耗時 ${timeString}！`;
+        
+        setTimeout(() => {
+          document.getElementById('rewardOverlay').style.display = 'flex';
+        }, 300);
+        return;
+      }
+
+      if (willShift) {
+        shiftTarget();
+      }
+
+      inputs.forEach(input => input.value = '');
+      inputs[0].focus();
+    }
+
+    function renderHistory() {
+      const historyDiv = document.getElementById('history');
+      let html = '';
+      historyData.forEach((item, index) => {
+        const displayIndex = historyData.length - index;
+        html += `
+          <div class="history-item">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span><strong>第 ${displayIndex} 次 [階段 ${item.cycle}]：</strong> <span style="color:#f472b6; font-weight:bold; font-size:1.05rem;">${item.guess}</span></span>
+            </div>
+            <div class="signal-container">
+              <span class="badge-signal">訊號 A：${item.signals[0].a}A ${item.signals[0].b}B</span>
+              <span class="badge-signal" style="color:#ff7675;">訊號 B：${item.signals[1].a}A ${item.signals[1].b}B</span>
+              <span class="badge-signal" style="color:#fd79a8;">訊號 C：${item.signals[2].a}A ${item.signals[2].b}B</span>
+              <span class="badge-signal" style="color:#e84393;">訊號 D：${item.signals[3].a}A ${item.signals[3].b}B</span>
+            </div>
+            ${item.shiftedNotice ? `<div style="margin-top:6px; color:#d946ef; font-weight:bold; font-size:0.8rem;">🌀 滿 8 次！觸發全體跳躍（全體加${item.shiftVal}）！</div>` : ''}
+          </div>
+        `;
+      });
+      historyDiv.innerHTML = html;
+    }
+
+    renderInputs();
+    startTimer();
+  </script>
+</body>
+</html>
